@@ -50,10 +50,11 @@ OPTIONAL_FIELDS = {
 
 # Valid data table file patterns: Category-D_TableName.json
 VALID_TABLE_CATEGORIES = {
-    "Items", "MetaWorkshop", "Talents", "Processors",
+    "Items", "MetaWorkshop", "Talents", "Processors", "Crafting",
     "Traits", "Modifiers", "Rewards", "Loot", "Stats",
     "Missions", "Weather", "Tech", "Buildable", "Fish",
-    "Creature", "Harvestable", "Deployable", "DLC",
+    "Creature", "Harvestable", "Deployable", "DLC", "Meta",
+    "Equipment", "Consumables", "Resources", "Workshop",
 }
 
 VALID_TABLE_NAMES = {
@@ -61,6 +62,8 @@ VALID_TABLE_NAMES = {
     "D_WorkshopItems", "D_Talents", "D_TalentArchetypes", "D_TalentTrees",
     "D_ProcessorRecipes", "D_Processable", "D_Decayable", "D_Consumable",
     "D_ModifierStates", "D_MetaCurrency", "D_Interactable",
+    "D_RecipeSets", "D_Processing", "D_Durable", "D_Buildable",
+    "D_Harvestable", "D_Deployable", "D_Creature", "D_FishSpawn",
 }
 
 VERSION_PATTERNS = [
@@ -128,6 +131,9 @@ class ValidationResult:
 
 def validate_json_syntax(content, result):
     """Check JSON is valid and parseable."""
+    # Strip UTF-8 BOM if present (common in Windows-created files)
+    if content.startswith("\ufeff"):
+        content = content[1:]
     try:
         data = json.loads(content)
         if not isinstance(data, dict):
@@ -184,12 +190,16 @@ def validate_mod_name(data, result):
     if len(name) > 100:
         result.warning("Mod name is very long (over 100 characters)")
 
-    # Check name matches fileName
-    if filename and name != filename:
-        result.warning(
-            f'"name" ({name}) differs from "fileName" ({filename}). '
-            "These should usually match for Mod Manager compatibility."
-        )
+    # Check name matches fileName (normalize for comparison)
+    if filename and name:
+        # Normalize: remove special chars, spaces, underscores, lowercase
+        norm_name = re.sub(r"[^a-z0-9]", "", name.lower())
+        norm_file = re.sub(r"[^a-z0-9]", "", filename.lower())
+        if norm_name != norm_file and norm_name not in norm_file and norm_file not in norm_name:
+            result.warning(
+                f'"name" ({name}) differs from "fileName" ({filename}). '
+                "These should usually match for Mod Manager compatibility."
+            )
 
     # Check for invalid characters in fileName
     if filename:
@@ -239,9 +249,13 @@ def validate_week(data, result):
     if not week:
         return  # Week is optional
 
+    # "All" means compatible with all versions
+    if week.lower() == "all":
+        return
+
     if not re.match(r"^[wW]?\d+$", week):
         result.warning(
-            f'Week field "{week}" doesn\'t match expected format (e.g., "132" or "w132")'
+            f'Week field "{week}" doesn\'t match expected format (e.g., "132", "w132", or "All")'
         )
 
 
@@ -490,7 +504,7 @@ def validate_exmodz_structure(exmodz_path, result):
         try:
             content_bytes = zf.read(exmod_path)
             validate_encoding(content_bytes, result)
-            return content_bytes.decode("utf-8", errors="replace")
+            return content_bytes.decode("utf-8-sig", errors="replace")
         except Exception as e:
             result.error(f"Failed to read {exmod_path}: {e}")
             return None
@@ -519,7 +533,7 @@ def validate_file(file_path):
             with open(file_path, "rb") as f:
                 content_bytes = f.read()
             validate_encoding(content_bytes, result)
-            content = content_bytes.decode("utf-8", errors="replace")
+            content = content_bytes.decode("utf-8-sig", errors="replace")
         except Exception as e:
             result.error(f"Failed to read file: {e}")
             return result
