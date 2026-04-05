@@ -1,0 +1,120 @@
+name: Validate Icarus Mod
+
+on:
+  push:
+    paths:
+      - '**.EXMOD'
+      - '**.exmod'
+      - '**.EXMODZ'
+      - '**.exmodz'
+      - '**/modinfo.json'
+      - 'README.md'
+  pull_request:
+    paths:
+      - '**.EXMOD'
+      - '**.exmod'
+      - '**.EXMODZ'
+      - '**.exmodz'
+      - '**/modinfo.json'
+      - 'README.md'
+  workflow_dispatch:
+    inputs:
+      mod_path:
+        description: 'Path to mod file or directory to validate (default: repo root)'
+        required: false
+        default: '.'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Validate Mod Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download validator
+        run: |
+          curl -sL https://raw.githubusercontent.com/AgentKush/icarus-modinfo-validator/main/validate_modinfo.py \
+            -o /tmp/validate_modinfo.py
+          chmod +x /tmp/validate_modinfo.py
+
+      - name: Find mod files
+        id: find-mods
+        run: |
+          MOD_PATH="${{ github.event.inputs.mod_path || '.' }}"
+          echo "mod_path=$MOD_PATH" >> "$GITHUB_OUTPUT"
+
+          # Count mod files
+          COUNT=$(find "$MOD_PATH" \( -name "*.EXMOD" -o -name "*.exmod" -o -name "*.EXMODZ" -o -name "*.exmodz" \) | wc -l)
+          echo "mod_count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Found $COUNT mod file(s)"
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::warning::No EXMOD/EXMODZ files found in $MOD_PATH"
+          fi
+
+      - name: Validate mod files
+        if: steps.find-mods.outputs.mod_count != '0'
+        run: |
+          python /tmp/validate_modinfo.py "${{ steps.find-mods.outputs.mod_path }}"
+
+      - name: Post PR comment with results
+        if: github.event_name == 'pull_request' && steps.find-mods.outputs.mod_count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const modPath = '${{ steps.find-mods.outputs.mod_path }}';
+
+            let output;
+            let exitCode = 0;
+            try {
+              output = execSync(`python /tmp/validate_modinfo.py "${modPath}" 2>&1`, {
+                encoding: 'utf-8',
+                timeout: 60000
+              });
+            } catch (e) {
+              output = e.stdout || e.message;
+              exitCode = e.status || 1;
+            }
+
+            const status = exitCode === 0 ? '✅ Mod Validation Passed' : '❌ Mod Validation Failed';
+
+            const body = `## ${status}\n\n\`\`\`\n${output}\n\`\`\`\n\n---\n*Validated by [Icarus Mod Validator](https://github.com/AgentKush/icarus-modinfo-validator)*`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.body.includes('Icarus Mod Validator')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
