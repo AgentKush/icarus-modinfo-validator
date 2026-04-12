@@ -24,7 +24,7 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **Packaging** — EXMODZ zip structure validated: EXMOD must be inside `Extracted Mods/` folder (Mod Manager requirement).
 
-**Blueprint (BP) Assets** — Validates `.uasset`/`.uexp` pairs inside `ModName/BP/` folders. Detects orphaned assets (missing pair), BP files incorrectly placed inside `Extracted Mods/`, and BP folders on disk that weren't included in the EXMODZ package. Cross-references BP assets against 7,872 known game blueprints (from `bp_assets.json`) to identify valid overrides vs custom assets — covers all 33 BP categories including AI, Objects, Building, Quests, Tools, and more.
+**Blueprint (BP) Assets** — Validates `.uasset`/`.uexp` pairs inside `ModName/BP/` folders. Detects orphaned assets (missing pair), BP files incorrectly placed inside `Extracted Mods/`, and BP folders on disk that weren't included in the EXMODZ package. Cross-references mod assets against all 71,037 known game assets from `game_assets.json.gz` (26 categories: ASS, Assets, BP, Data, Maps, UI, and more) to identify valid overrides vs custom assets.
 
 **PAK Files** — Validates `.pak` files follow the `_P.pak` naming convention required by Icarus. Checks PAK files aren't inside `Extracted Mods/`. Detects PAK files on disk missing from the EXMODZ package. Reminds that PAK mods require all players and the server to install.
 
