@@ -28,7 +28,7 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **PAK Files** — Validates `.pak` files follow the `_P.pak` naming convention required by Icarus. Checks PAK files aren't inside `Extracted Mods/`. Detects PAK files on disk missing from the EXMODZ package. Reminds that PAK mods require all players and the server to install.
 
-**Documentation & Support Files** — Checks EXMODZ packages include `README.md`, `Banner.png`, and `Readme (ModName_P.pak).txt` in the `ModName/` folder. Missing README or banner are flagged. PAK mods without a Readme .txt install guide get a warning. Disk cross-check catches doc files left out of the package. Also checks README content quality, installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
+**Documentation & Support Files** — Checks EXMODZ packages include `README.md`, `Banner.png`, and `Readme .txt` in the `ModName/` folder. The Readme .txt is the main info body displayed in Icarus Mod Manager. Missing README or banner are flagged. Disk cross-check catches doc files left out of the package. Also checks README content quality, installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
 
 **Catalog (modinfo.json)** — Validates the master mod catalog: required fields per mod, duplicate detection, download URL format, and cross-referencing against actual mod folders.
 
@@ -96,17 +96,40 @@ python validate_modinfo.py --github MyMod/MyMod.EXMOD
 
 ### Example Output
 
+Real output from [AgentKush's Icarus Mods](https://github.com/AgentKush/Icarus-mods):
+
+**EXMODZ with BP + PAK — caught missing Blueprint assets:**
 ```
 ══════════════════════════════════════════════════════════════
-  Validating: BrokenMod.EXMOD
+  Validating: Deployable_Deep_Ore_Nodes.EXMODZ
 ══════════════════════════════════════════════════════════════
-  ❌ ERROR: Missing required field: "author"
-  ❌ ERROR [Rows[0]]: Missing "CurrentFile" in row entry
-  ⚠️ WARNING: Version "latest" doesn't match expected formats
-  ⚠️ WARNING: Description appears to be a placeholder: "a mod"
-  ⚠️ WARNING: No README file found.
+  ℹ️ INFO: BP folder found: 21 .uasset, 21 .uexp files
+  ℹ️ INFO: PAK file(s) found: Deployable_Deep_Ore_Nodes/DeepOreNodes_P.pak
+  ℹ️ INFO: PAK mod detected (DeepOreNodes_P.pak). Remember: all players and
+    the server must install .pak files to Icarus/Content/Paks/mods/
+  ❌ ERROR: BP file "BP_DeepOreNode_Frozen_Wood.uasset" exists on disk but is
+    NOT in the EXMODZ package. Missing assets cause Unreal Engine load failures.
+  ❌ ERROR: BP file "BP_DeepOreNode_Frozen_Wood.uexp" exists on disk but is
+    NOT in the EXMODZ package. Missing assets cause Unreal Engine load failures.
+  ❌ ERROR: BP file "BP_DeepOreNode_Super_Cooled_Ice.uasset" exists on disk but
+    is NOT in the EXMODZ package. Missing assets cause Unreal Engine load failures.
+  ❌ ERROR: BP file "BP_DeepOreNode_Super_Cooled_Ice.uexp" exists on disk but
+    is NOT in the EXMODZ package. Missing assets cause Unreal Engine load failures.
+  ℹ️ INFO: No Banner.png found in "Deployable_Deep_Ore_Nodes/" folder.
+    A banner image makes the mod look polished in Mod Manager.
+  ⚠️ WARNING: No Readme .txt found in "Deployable_Deep_Ore_Nodes/" folder.
+    This file provides the main info body displayed in Icarus Mod Manager.
 
-  ❌ FAILED — 2 error(s), 3 warning(s)
+  ❌ FAILED — 4 error(s), 1 warning(s)
+```
+
+**Clean EXMOD pass:**
+```
+══════════════════════════════════════════════════════════════
+  Validating: Extended_Spoil_Timers.EXMOD
+══════════════════════════════════════════════════════════════
+
+  ✅ PASSED — 0 error(s), 0 warning(s)
 ```
 
 ---
