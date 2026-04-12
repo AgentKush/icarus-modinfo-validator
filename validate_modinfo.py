@@ -90,6 +90,8 @@ VALID_TABLE_NAMES = {
     "D_ProspectList", "D_ProspectStats", "D_HordeWave",
     # Armour
     "D_ArmourSetBonus", "D_ArmourSets",
+    # Energy and building types
+    "D_Energy", "D_BuildingTypes",
 }
 
 VERSION_PATTERNS = [
@@ -329,7 +331,8 @@ def validate_rows(data, result):
             continue
 
         # Validate table file naming: Category-D_TableName.json
-        table_match = re.match(r"^(\w+)-(D_\w+)\.json$", current_file)
+        # Also handles multi-segment categories like Items-Types-D_BuildingTypes.json
+        table_match = re.match(r"^(.+)-(D_\w+)\.json$", current_file)
         if not table_match:
             result.warning(
                 f'"{current_file}" doesn\'t match expected format: '
@@ -337,7 +340,9 @@ def validate_rows(data, result):
                 loc,
             )
         else:
-            category = table_match.group(1)
+            category_full = table_match.group(1)
+            # Use the first segment for category validation
+            category = category_full.split("-")[0]
             table_name = table_match.group(2)
 
             if category not in VALID_TABLE_CATEGORIES:
