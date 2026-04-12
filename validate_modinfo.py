@@ -698,7 +698,7 @@ def validate_exmodz_structure(exmodz_path, result):
                       or (n.count("/") == 1
                           and n.lower().endswith("/banner.png")
                           and not n.startswith("Extracted Mods/"))]
-        # Readme (ModName_P.pak).txt — the PAK install instructions
+        # Readme .txt — the main info body displayed in Icarus Mod Manager
         readme_txt = [n for n in names
                       if n.count("/") == 1
                       and n.lower().endswith(".txt")
@@ -715,10 +715,10 @@ def validate_exmodz_structure(exmodz_path, result):
                 f'No Banner.png found in "{exmod_name}/" folder. '
                 "A banner image makes the mod look polished in Mod Manager."
             )
-        if pak_files and not readme_txt:
+        if not readme_txt:
             result.warning(
-                f'PAK mod detected but no Readme .txt found in "{exmod_name}/" folder. '
-                "PAK mods should include a Readme (ModName_P.pak).txt with install instructions."
+                f'No Readme .txt found in "{exmod_name}/" folder. '
+                "This file provides the main info body displayed in Icarus Mod Manager."
             )
 
         # Disk cross-check: doc files on disk but missing from EXMODZ

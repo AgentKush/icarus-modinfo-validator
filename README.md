@@ -160,7 +160,7 @@ ModName.EXMODZ (zip)
 |------|----------|
 | `README.md` missing from `ModName/` folder | Warning |
 | `Banner.png` missing from `ModName/` folder | Info |
-| PAK mod without `Readme (ModName_P.pak).txt` | Warning |
+| `Readme .txt` missing from `ModName/` (Mod Manager info body) | Warning |
 | Doc file on disk but missing from EXMODZ | Warning |
 
 ---
