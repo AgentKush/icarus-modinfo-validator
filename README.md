@@ -24,7 +24,7 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **Packaging** — EXMODZ zip structure validated: EXMOD must be inside `Extracted Mods/` folder (Mod Manager requirement).
 
-**Blueprint (BP) Assets** — Validates `.uasset`/`.uexp` pairs inside `ModName/BP/` folders. Detects orphaned assets (missing pair), BP files incorrectly placed inside `Extracted Mods/`, and BP folders on disk that weren't included in the EXMODZ package.
+**Blueprint (BP) Assets** — Validates `.uasset`/`.uexp` pairs inside `ModName/BP/` folders. Detects orphaned assets (missing pair), BP files incorrectly placed inside `Extracted Mods/`, and BP folders on disk that weren't included in the EXMODZ package. Cross-references BP assets against 7,872 known game blueprints (from `bp_assets.json`) to identify valid overrides vs custom assets — covers all 33 BP categories including AI, Objects, Building, Quests, Tools, and more.
 
 **PAK Files** — Validates `.pak` files follow the `_P.pak` naming convention required by Icarus. Checks PAK files aren't inside `Extracted Mods/`. Detects PAK files on disk missing from the EXMODZ package. Reminds that PAK mods require all players and the server to install.
 
@@ -173,6 +173,8 @@ ModName.EXMODZ (zip)
 | Every `.uasset` must have a matching `.uexp` (and vice versa) | Error |
 | BP files must be in `ModName/BP/`, never in `Extracted Mods/` | Error |
 | BP folder on disk but missing from EXMODZ | Error |
+| BP asset not found in known game assets | Info |
+| BP asset matches known game asset (valid override) | Info |
 | PAK files must follow `_P.pak` naming convention | Warning |
 | PAK files must not be in `Extracted Mods/` | Error |
 | PAK file on disk but missing from EXMODZ | Warning |

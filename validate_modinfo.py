@@ -34,6 +34,38 @@ import zipfile
 from pathlib import Path
 
 
+# ── BP asset reference (loaded lazily) ────────────────────────────────────────
+
+_BP_KNOWN_ASSETS = None
+
+
+def _load_bp_assets():
+    """Load known game BP assets from bp_assets.json if available."""
+    global _BP_KNOWN_ASSETS
+    if _BP_KNOWN_ASSETS is not None:
+        return _BP_KNOWN_ASSETS
+
+    # Look for bp_assets.json next to this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    bp_file = os.path.join(script_dir, "bp_assets.json")
+    if not os.path.isfile(bp_file):
+        _BP_KNOWN_ASSETS = set()
+        return _BP_KNOWN_ASSETS
+
+    try:
+        with open(bp_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Build a flat set of all asset stems (lowercase for case-insensitive matching)
+        all_assets = set()
+        for category, stems in data.get("assets", {}).items():
+            for stem in stems:
+                all_assets.add(stem.lower())
+        _BP_KNOWN_ASSETS = all_assets
+    except Exception:
+        _BP_KNOWN_ASSETS = set()
+    return _BP_KNOWN_ASSETS
+
+
 # ── Schema ────────────────────────────────────────────────────────────────────
 
 REQUIRED_FIELDS = {
@@ -616,6 +648,28 @@ def validate_exmodz_structure(exmodz_path, result):
                     f'BP asset "{basename}.uexp" has no matching .uasset file. '
                     "Both files are required for Unreal Engine to load the blueprint."
                 )
+
+            # Cross-reference BP assets against known game assets
+            known_bp = _load_bp_assets()
+            if known_bp:
+                for stem in uasset_stems:
+                    # Extract the path relative to BP/ folder
+                    # e.g. "ModName/BP/AI/GOAP/BP_Foo" -> "AI/GOAP/BP_Foo"
+                    parts = stem.split("/BP/", 1)
+                    if len(parts) == 2:
+                        bp_rel = parts[1].lower()
+                        if bp_rel not in known_bp:
+                            basename = bp_rel.rsplit("/", 1)[-1]
+                            result.info(
+                                f'BP asset "{basename}" is not a known game asset. '
+                                "This may be a custom blueprint (which is fine) or a typo."
+                            )
+                        else:
+                            basename = bp_rel.rsplit("/", 1)[-1]
+                            result.info(
+                                f'BP asset "{basename}" matches known game asset — '
+                                "this is a valid override."
+                            )
 
             # BP files must be inside the ModName/ folder, not Extracted Mods/
             wrong_location_bp = [n for n in bp_files if n.startswith("Extracted Mods/")]
