@@ -1,0 +1,34 @@
+name: False Negative
+description: Validator misses an error it should catch
+labels: ["false-negative"]
+body:
+  - type: input
+    id: mod-file
+    attributes:
+      label: Mod file
+      description: Name of the EXMOD/EXMODZ file that passed when it shouldn't have
+      placeholder: MyMod.EXMODZ
+    validations:
+      required: true
+  - type: textarea
+    id: what-was-missed
+    attributes:
+      label: What did the validator miss?
+      description: Describe the issue that the validator should have caught but didn't
+    validations:
+      required: true
+  - type: textarea
+    id: how-discovered
+    attributes:
+      label: How did you discover it?
+      description: Did the mod crash in game, fail to load in Mod Manager, or was it found manually?
+    validations:
+      required: true
+  - type: textarea
+    id: mod-snippet
+    attributes:
+      label: Relevant mod data
+      description: Paste the part of the EXMOD JSON or EXMODZ structure that should have been flagged
+      render: json
+    validations:
+      required: false

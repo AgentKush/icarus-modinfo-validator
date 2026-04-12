@@ -1,0 +1,37 @@
+name: BP / PAK Issue
+description: Blueprint asset or PAK file validation issue
+labels: ["BP/PAK"]
+body:
+  - type: input
+    id: mod-file
+    attributes:
+      label: Mod file
+      description: Name of the EXMODZ package
+      placeholder: MyMod.EXMODZ
+    validations:
+      required: true
+  - type: dropdown
+    id: asset-type
+    attributes:
+      label: Asset type
+      options:
+        - Blueprint (.uasset/.uexp)
+        - PAK file (.pak)
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: What went wrong with BP/PAK validation?
+    validations:
+      required: true
+  - type: textarea
+    id: file-structure
+    attributes:
+      label: File structure
+      description: Show the relevant folder/file layout inside the EXMODZ
+      render: shell
+    validations:
+      required: false

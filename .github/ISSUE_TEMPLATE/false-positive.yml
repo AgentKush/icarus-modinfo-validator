@@ -1,0 +1,37 @@
+name: False Positive
+description: Validator incorrectly flags something as an error or warning
+labels: ["false-positive"]
+body:
+  - type: input
+    id: mod-file
+    attributes:
+      label: Mod file
+      description: Name of the EXMOD/EXMODZ file affected
+      placeholder: MyMod.EXMODZ
+    validations:
+      required: true
+  - type: textarea
+    id: incorrect-message
+    attributes:
+      label: Incorrect error/warning
+      description: Paste the exact message the validator produced that you believe is wrong
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: why-wrong
+    attributes:
+      label: Why is this wrong?
+      description: Explain why the flagged issue is actually valid — e.g. the mod loads fine in game, the table exists, the BP pair is correct
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: What severity was it flagged as?
+      options:
+        - Error
+        - Warning
+        - Info
+    validations:
+      required: true

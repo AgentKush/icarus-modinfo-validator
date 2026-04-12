@@ -1,0 +1,37 @@
+name: CI / Workflow Issue
+description: GitHub Actions workflow or CI integration problem
+labels: ["CI/workflow"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: What went wrong with the GitHub Actions workflow?
+    validations:
+      required: true
+  - type: input
+    id: run-link
+    attributes:
+      label: Actions run link
+      description: Link to the failed GitHub Actions run (if applicable)
+      placeholder: https://github.com/user/repo/actions/runs/12345
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste the relevant section from the Actions log
+      render: shell
+    validations:
+      required: false
+  - type: dropdown
+    id: trigger
+    attributes:
+      label: How was the workflow triggered?
+      options:
+        - Push to main
+        - Pull request
+        - Manual (workflow_dispatch)
+    validations:
+      required: true

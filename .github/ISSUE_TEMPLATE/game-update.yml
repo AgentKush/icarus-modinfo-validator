@@ -1,0 +1,33 @@
+name: Icarus Game Update
+description: New Icarus update added, removed, or changed data tables
+labels: ["game-update"]
+body:
+  - type: input
+    id: game-week
+    attributes:
+      label: Game week / version
+      description: Which weekly update introduced the changes?
+      placeholder: Week 140
+    validations:
+      required: true
+  - type: textarea
+    id: new-tables
+    attributes:
+      label: New tables added
+      description: List any new D_TableName entries or categories added in this update
+    validations:
+      required: false
+  - type: textarea
+    id: removed-tables
+    attributes:
+      label: Tables removed or renamed
+      description: List any tables that were removed or renamed
+    validations:
+      required: false
+  - type: textarea
+    id: other-changes
+    attributes:
+      label: Other changes affecting mods
+      description: Any structural changes, new fields, or format changes that modders should know about
+    validations:
+      required: false

@@ -1,0 +1,33 @@
+name: Mod Manager Compatibility
+description: Compatibility issue with JimK72's Mod Manager
+labels: ["mod-manager-compat"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: What compatibility problem did you encounter between the validator and Mod Manager?
+    validations:
+      required: true
+  - type: input
+    id: mod-manager-version
+    attributes:
+      label: Mod Manager version
+      description: Which version of JimK72's Mod Manager are you using?
+    validations:
+      required: false
+  - type: textarea
+    id: mod-manager-behaviour
+    attributes:
+      label: Mod Manager behaviour
+      description: What does Mod Manager do with the mod? (loads fine, shows error, ignores it, etc.)
+    validations:
+      required: false
+  - type: textarea
+    id: validator-output
+    attributes:
+      label: Validator output
+      description: Paste the validator output for comparison
+      render: shell
+    validations:
+      required: false

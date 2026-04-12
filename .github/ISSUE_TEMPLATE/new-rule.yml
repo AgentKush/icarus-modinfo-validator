@@ -1,0 +1,43 @@
+name: New Rule Request
+description: Request a new validation check
+labels: ["new-rule"]
+body:
+  - type: textarea
+    id: what-to-check
+    attributes:
+      label: What should be validated?
+      description: Describe the rule — what should the validator check for?
+    validations:
+      required: true
+  - type: dropdown
+    id: suggested-severity
+    attributes:
+      label: Suggested severity
+      options:
+        - Error (mod will break)
+        - Warning (mod works but has issues)
+        - Info (recommendation)
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example of the problem
+      description: Show an example of a mod that would fail this check — paste JSON, file structure, or describe the scenario
+    validations:
+      required: false
+  - type: dropdown
+    id: category
+    attributes:
+      label: Which area does this cover?
+      options:
+        - EXMOD fields/schema
+        - Data tables
+        - Blueprint (BP) assets
+        - PAK files
+        - EXMODZ packaging
+        - Documentation files
+        - modinfo.json catalog
+        - Other
+    validations:
+      required: true

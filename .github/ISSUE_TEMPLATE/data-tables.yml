@@ -1,0 +1,39 @@
+name: Missing or Incorrect Data Table
+description: A table name or category is missing, wrong, or needs updating
+labels: ["data-tables"]
+body:
+  - type: input
+    id: table-name
+    attributes:
+      label: Table name
+      description: The D_TableName that's missing or incorrect
+      placeholder: D_NewTableName
+    validations:
+      required: true
+  - type: input
+    id: category
+    attributes:
+      label: Category
+      description: The category folder it belongs to (e.g. Items, Talents, AI)
+      placeholder: Items
+    validations:
+      required: true
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: What's the issue?
+      options:
+        - Table is missing from validator (valid table flagged as unknown)
+        - Table was removed from the game (validator accepts a deleted table)
+        - Table was renamed
+        - Category is wrong
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Icarus game version / week
+      description: Which game week or version introduced the change?
+      placeholder: Week 140
+    validations:
+      required: false

@@ -1,0 +1,35 @@
+name: EXMODZ Structure Issue
+description: EXMODZ packaging, zip structure, or file layout problem
+labels: ["EXMODZ-structure"]
+body:
+  - type: input
+    id: mod-file
+    attributes:
+      label: Mod file
+      description: Name of the EXMODZ package
+      placeholder: MyMod.EXMODZ
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the issue
+      description: What's wrong with the EXMODZ structure or packaging?
+    validations:
+      required: true
+  - type: textarea
+    id: zip-contents
+    attributes:
+      label: Zip contents
+      description: "Run: python -c \"import zipfile; [print(n) for n in zipfile.ZipFile('MyMod.EXMODZ').namelist()]\""
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: validator-output
+    attributes:
+      label: Validator output
+      description: Paste the relevant validation output
+      render: shell
+    validations:
+      required: false

@@ -1,0 +1,51 @@
+name: Bug Report
+description: Validator crashes, wrong exit code, or broken output
+labels: ["bug"]
+body:
+  - type: input
+    id: mod-file
+    attributes:
+      label: Mod file
+      description: Name of the EXMOD/EXMODZ file that triggered the bug
+      placeholder: MyMod.EXMODZ
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the bug — what did the validator do wrong?
+      placeholder: The validator crashed with a traceback when I ran it against my mod.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Validator output
+      description: Paste the full terminal output or GitHub Actions log
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.11"
+    validations:
+      required: false
+  - type: dropdown
+    id: run-environment
+    attributes:
+      label: Where did you run it?
+      options:
+        - Local (command line)
+        - GitHub Actions
+    validations:
+      required: true
