@@ -28,7 +28,7 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **PAK Files** — Validates `.pak` files follow the `_P.pak` naming convention required by Icarus. Checks PAK files aren't inside `Extracted Mods/`. Detects PAK files on disk missing from the EXMODZ package. Reminds that PAK mods require all players and the server to install.
 
-**Documentation** — README.md presence and content quality. Checks for installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
+**Documentation & Support Files** — Checks EXMODZ packages include `README.md`, `Banner.png`, and `Readme (ModName_P.pak).txt` in the `ModName/` folder. Missing README or banner are flagged. PAK mods without a Readme .txt install guide get a warning. Disk cross-check catches doc files left out of the package. Also checks README content quality, installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
 
 **Catalog (modinfo.json)** — Validates the master mod catalog: required fields per mod, duplicate detection, download URL format, and cross-referencing against actual mod folders.
 
@@ -153,6 +153,15 @@ ModName.EXMODZ (zip)
 | PAK files must follow `_P.pak` naming convention | Warning |
 | PAK files must not be in `Extracted Mods/` | Error |
 | PAK file on disk but missing from EXMODZ | Warning |
+
+### Documentation & Support File Rules
+
+| Rule | Severity |
+|------|----------|
+| `README.md` missing from `ModName/` folder | Warning |
+| `Banner.png` missing from `ModName/` folder | Info |
+| PAK mod without `Readme (ModName_P.pak).txt` | Warning |
+| Doc file on disk but missing from EXMODZ | Warning |
 
 ---
 

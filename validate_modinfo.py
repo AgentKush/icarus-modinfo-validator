@@ -686,6 +686,61 @@ def validate_exmodz_structure(exmodz_path, result):
                         "If this PAK is required, it should be included."
                     )
 
+        # ── Documentation / support file checks ────────────────────────
+        # EXMODZ packages should include these files in ModName/ folder
+        readme_md = [n for n in names
+                     if n.lower() == f"{exmod_name.lower()}/readme.md"
+                     or (n.count("/") == 1
+                         and n.lower().endswith("/readme.md")
+                         and not n.startswith("Extracted Mods/"))]
+        banner_png = [n for n in names
+                      if n.lower() == f"{exmod_name.lower()}/banner.png"
+                      or (n.count("/") == 1
+                          and n.lower().endswith("/banner.png")
+                          and not n.startswith("Extracted Mods/"))]
+        # Readme (ModName_P.pak).txt — the PAK install instructions
+        readme_txt = [n for n in names
+                      if n.count("/") == 1
+                      and n.lower().endswith(".txt")
+                      and n.lower().startswith(f"{exmod_name.lower()}/")
+                      and "readme" in n.lower()]
+
+        if not readme_md:
+            result.warning(
+                f'No README.md found in "{exmod_name}/" folder. '
+                "A README helps users understand what the mod does and how to install it."
+            )
+        if not banner_png:
+            result.info(
+                f'No Banner.png found in "{exmod_name}/" folder. '
+                "A banner image makes the mod look polished in Mod Manager."
+            )
+        if pak_files and not readme_txt:
+            result.warning(
+                f'PAK mod detected but no Readme .txt found in "{exmod_name}/" folder. '
+                "PAK mods should include a Readme (ModName_P.pak).txt with install instructions."
+            )
+
+        # Disk cross-check: doc files on disk but missing from EXMODZ
+        if mod_dir:
+            for doc_file in ["README.md", "Banner.png"]:
+                disk_doc = os.path.join(mod_dir, doc_file)
+                if os.path.isfile(disk_doc):
+                    packaged_names_lower = {n.lower() for n in names}
+                    expected = f"{exmod_name}/{doc_file}".lower()
+                    if expected not in packaged_names_lower:
+                        result.warning(
+                            f'"{doc_file}" exists on disk but is NOT in the EXMODZ package.'
+                        )
+            # Check for Readme .txt files on disk
+            for f in os.listdir(mod_dir):
+                if f.lower().endswith(".txt") and "readme" in f.lower():
+                    packaged_txt_lower = {n.rsplit("/", 1)[-1].lower() for n in names}
+                    if f.lower() not in packaged_txt_lower:
+                        result.warning(
+                            f'"{f}" exists on disk but is NOT in the EXMODZ package.'
+                        )
+
         # Read and return the EXMOD content
         exmod_path = exmod_files[0]
         try:
