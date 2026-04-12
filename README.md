@@ -157,9 +157,9 @@ ModName.EXMODZ (zip)
 ├── Extracted Mods/
 │   └── ModName.EXMOD          ← Required location
 └── ModName/
-    ├── Readme (ModName_P.pak).txt
-    ├── README.md
-    ├── Banner.png
+    ├── Readme (ModName_P.pak).txt  ← Main info body in Mod Manager
+    ├── README.md                   ← GitHub documentation
+    ├── Banner.png                  ← 768×256 PNG (Mod Manager display)
     ├── BP/                    ← Blueprint assets (optional)
     │   ├── Asset.uasset       ← Must have matching .uexp
     │   └── Asset.uexp
@@ -178,6 +178,12 @@ ModName.EXMODZ (zip)
 | PAK file on disk but missing from EXMODZ | Warning |
 
 ### Documentation & Support File Rules
+
+| File | Format | Description |
+|------|--------|-------------|
+| `Banner.png` | PNG, 768×256 pixels | Display image shown in Mod Manager's mod list |
+| `Readme (ModName_P.pak).txt` | Plain text | Main info body displayed in Mod Manager when the mod is selected |
+| `README.md` | Markdown | Documentation shown on GitHub |
 
 | Rule | Severity |
 |------|----------|
