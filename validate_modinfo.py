@@ -656,11 +656,24 @@ def validate_exmodz_structure(exmodz_path, result):
         # (only when we can check the mod directory on disk)
         mod_dir = os.path.dirname(exmodz_path)
         disk_bp_dir = os.path.join(mod_dir, "BP")
-        if os.path.isdir(disk_bp_dir) and not bp_files:
-            result.error(
-                'BP/ folder exists on disk but is NOT included in the EXMODZ package. '
-                "Blueprint assets must be packaged inside the EXMODZ for the mod to work."
-            )
+        if os.path.isdir(disk_bp_dir):
+            if not bp_files:
+                result.error(
+                    'BP/ folder exists on disk but is NOT included in the EXMODZ package. '
+                    "Blueprint assets must be packaged inside the EXMODZ for the mod to work."
+                )
+            else:
+                # Per-file cross-check: detect individual BP files on disk missing from package
+                packaged_bp_names = {n.rsplit("/", 1)[-1] for n in bp_files}
+                for root, dirs, files in os.walk(disk_bp_dir):
+                    for f in files:
+                        if f.endswith('.vanilla.bak'):
+                            continue
+                        if f not in packaged_bp_names:
+                            result.error(
+                                f'BP file "{f}" exists on disk but is NOT in the EXMODZ '
+                                "package. Missing assets cause Unreal Engine load failures."
+                            )
 
         # Check for .pak on disk but missing from EXMODZ
         if mod_dir:
