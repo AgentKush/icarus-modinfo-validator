@@ -20,7 +20,7 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **Version Format** — Supports semver (`1.0`, `1.0.0`, `v1.2.3`), week-based (`w132`, `W125`), and metadata variants (`1.0.0-beta`).
 
-**Data Table Structure** — `CurrentFile` naming follows `Category-D_TableName.json` convention. Every `File_Items` entry has a `Name` identifier. `NSLOCTEXT()` strings validated. Icon paths verified (`/Game/Assets/`). Workshop costs checked for valid `Amount` values. Talent grid entries checked for `Position` and `Size`. Duplicate table references flagged. Recognizes 37 table categories and 51+ table names.
+**Data Table Structure** — `CurrentFile` naming follows `Category-D_TableName.json` convention (including multi-segment categories like `Items-Types-D_BuildingTypes.json`). Every `File_Items` entry has a `Name` identifier. `NSLOCTEXT()` strings validated. Icon paths verified (`/Game/Assets/`). Workshop costs checked for valid `Amount` values. Talent grid entries checked for `Position` and `Size`. Duplicate table references flagged. Recognizes all 78 game categories and 292 data tables sourced directly from Icarus game exports.
 
 **Packaging** — EXMODZ zip structure validated: EXMOD must be inside `Extracted Mods/` folder (Mod Manager requirement).
 
@@ -125,7 +125,7 @@ python validate_modinfo.py --github MyMod/MyMod.EXMOD
 
 ### Supported Data Tables
 
-The validator recognizes 37 table categories and 51+ table names from Icarus, including `D_ItemTemplate`, `D_ItemsStatic`, `D_WorkshopItems`, `D_Talents`, `D_TalentTrees`, `D_TalentArchetypes`, `D_ProcessorRecipes`, `D_Consumable`, `D_Equippable`, `D_BuildingPieces`, `D_Turret`, `D_Biomes`, `D_ProspectList`, and more.
+The validator recognizes all 78 table categories and 292 table names from the Icarus game exports, covering every moddable data table in the game — from core items (`D_ItemTemplate`, `D_ItemsStatic`) to crafting (`D_ProcessorRecipes`, `D_RecipeSets`), talents (`D_Talents`, `D_TalentTrees`), AI (`D_AICreatureType`, `D_GOAPSetup`), weather (`D_WeatherEvents`, `D_Biomes`), combat (`D_FirearmData`, `D_CriticalHitSetup`), vehicles (`D_VehicleSetups`, `D_Mounts`), and more.
 
 ### EXMODZ Structure
 
