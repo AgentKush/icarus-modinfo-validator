@@ -20,9 +20,13 @@ Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) form
 
 **Version Format** — Supports semver (`1.0`, `1.0.0`, `v1.2.3`), week-based (`w132`, `W125`), and metadata variants (`1.0.0-beta`).
 
-**Data Table Structure** — `CurrentFile` naming follows `Category-D_TableName.json` convention. Every `File_Items` entry has a `Name` identifier. `NSLOCTEXT()` strings validated. Icon paths verified (`/Game/Assets/`). Workshop costs checked for valid `Amount` values. Talent grid entries checked for `Position` and `Size`. Duplicate table references flagged.
+**Data Table Structure** — `CurrentFile` naming follows `Category-D_TableName.json` convention. Every `File_Items` entry has a `Name` identifier. `NSLOCTEXT()` strings validated. Icon paths verified (`/Game/Assets/`). Workshop costs checked for valid `Amount` values. Talent grid entries checked for `Position` and `Size`. Duplicate table references flagged. Recognizes 37 table categories and 51+ table names.
 
 **Packaging** — EXMODZ zip structure validated: EXMOD must be inside `Extracted Mods/` folder (Mod Manager requirement).
+
+**Blueprint (BP) Assets** — Validates `.uasset`/`.uexp` pairs inside `ModName/BP/` folders. Detects orphaned assets (missing pair), BP files incorrectly placed inside `Extracted Mods/`, and BP folders on disk that weren't included in the EXMODZ package.
+
+**PAK Files** — Validates `.pak` files follow the `_P.pak` naming convention required by Icarus. Checks PAK files aren't inside `Extracted Mods/`. Detects PAK files on disk missing from the EXMODZ package. Reminds that PAK mods require all players and the server to install.
 
 **Documentation** — README.md presence and content quality. Checks for installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
 
@@ -121,7 +125,7 @@ python validate_modinfo.py --github MyMod/MyMod.EXMOD
 
 ### Supported Data Tables
 
-The validator recognizes 20+ table categories and 24+ table names from Icarus, including `D_ItemTemplate`, `D_ItemsStatic`, `D_WorkshopItems`, `D_Talents`, `D_TalentTrees`, `D_TalentArchetypes`, `D_ProcessorRecipes`, `D_Consumable`, `D_Equippable`, and more.
+The validator recognizes 37 table categories and 51+ table names from Icarus, including `D_ItemTemplate`, `D_ItemsStatic`, `D_WorkshopItems`, `D_Talents`, `D_TalentTrees`, `D_TalentArchetypes`, `D_ProcessorRecipes`, `D_Consumable`, `D_Equippable`, `D_BuildingPieces`, `D_Turret`, `D_Biomes`, `D_ProspectList`, and more.
 
 ### EXMODZ Structure
 
@@ -132,8 +136,23 @@ ModName.EXMODZ (zip)
 └── ModName/
     ├── Readme (ModName_P.pak).txt
     ├── README.md
-    └── Banner.png
+    ├── Banner.png
+    ├── BP/                    ← Blueprint assets (optional)
+    │   ├── Asset.uasset       ← Must have matching .uexp
+    │   └── Asset.uexp
+    └── ModName_P.pak          ← PAK file (optional)
 ```
+
+### Blueprint & PAK Rules
+
+| Rule | Severity |
+|------|----------|
+| Every `.uasset` must have a matching `.uexp` (and vice versa) | Error |
+| BP files must be in `ModName/BP/`, never in `Extracted Mods/` | Error |
+| BP folder on disk but missing from EXMODZ | Error |
+| PAK files must follow `_P.pak` naming convention | Warning |
+| PAK files must not be in `Extracted Mods/` | Error |
+| PAK file on disk but missing from EXMODZ | Warning |
 
 ---
 
