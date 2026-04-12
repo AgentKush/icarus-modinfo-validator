@@ -8,7 +8,6 @@ on:
       - '**.EXMODZ'
       - '**.exmodz'
       - '**/modinfo.json'
-      - 'README.md'
   pull_request:
     paths:
       - '**.EXMOD'
@@ -16,7 +15,6 @@ on:
       - '**.EXMODZ'
       - '**.exmodz'
       - '**/modinfo.json'
-      - 'README.md'
   workflow_dispatch:
     inputs:
       mod_path:
@@ -54,19 +52,96 @@ jobs:
           MOD_PATH="${{ github.event.inputs.mod_path || '.' }}"
           echo "mod_path=$MOD_PATH" >> "$GITHUB_OUTPUT"
 
-          # Count mod files
           COUNT=$(find "$MOD_PATH" \( -name "*.EXMOD" -o -name "*.exmod" -o -name "*.EXMODZ" -o -name "*.exmodz" \) | wc -l)
           echo "mod_count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "Found $COUNT mod file(s)"
+
+          # Check for modinfo.json
+          if [ -f "modinfo.json" ]; then
+            echo "has_modinfo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_modinfo=false" >> "$GITHUB_OUTPUT"
+          fi
 
           if [ "$COUNT" -eq 0 ]; then
             echo "::warning::No EXMOD/EXMODZ files found in $MOD_PATH"
           fi
 
       - name: Validate mod files
+        id: validate-mods
         if: steps.find-mods.outputs.mod_count != '0'
         run: |
-          python /tmp/validate_modinfo.py "${{ steps.find-mods.outputs.mod_path }}"
+          set +e
+          OUTPUT=$(python /tmp/validate_modinfo.py "${{ steps.find-mods.outputs.mod_path }}" 2>&1)
+          MOD_EXIT=$?
+          echo "$OUTPUT"
+          echo "mod_exit=$MOD_EXIT" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Validate modinfo.json catalog
+        id: validate-catalog
+        if: steps.find-mods.outputs.has_modinfo == 'true'
+        run: |
+          set +e
+          python3 -c "
+          import json, os, sys
+
+          with open('modinfo.json') as f:
+              data = json.load(f)
+
+          if not isinstance(data, dict) or 'mods' not in data:
+              print('❌ modinfo.json must have a top-level \"mods\" array')
+              sys.exit(1)
+
+          errors = 0
+          warnings = 0
+          names_seen = set()
+
+          for i, mod in enumerate(data['mods']):
+              prefix = f'mods[{i}]'
+
+              # Required fields
+              for field in ['name', 'author', 'version', 'description']:
+                  if field not in mod:
+                      print(f'❌ {prefix}: missing required field \"{field}\"')
+                      errors += 1
+
+              name = mod.get('name', f'unnamed-{i}')
+
+              # Duplicate check
+              if name in names_seen:
+                  print(f'❌ {prefix}: duplicate mod name \"{name}\"')
+                  errors += 1
+              names_seen.add(name)
+
+              # File URLs
+              files = mod.get('files', {})
+              if 'exmodz' in files:
+                  url = files['exmodz']
+                  if not url.endswith('.EXMODZ'):
+                      print(f'⚠️ {prefix} ({name}): exmodz URL should end with .EXMODZ')
+                      warnings += 1
+
+              # Optional but recommended
+              if 'imageURL' not in mod:
+                  print(f'ℹ️ {prefix} ({name}): no imageURL (icon will be missing)')
+              if 'readmeURL' not in mod:
+                  print(f'ℹ️ {prefix} ({name}): no readmeURL')
+
+          total = len(data['mods'])
+          print(f'')
+          if errors > 0:
+              print(f'❌ modinfo.json: {errors} error(s), {warnings} warning(s) across {total} mods')
+              sys.exit(1)
+          elif warnings > 0:
+              print(f'⚠️ modinfo.json: {warnings} warning(s) across {total} mods')
+              sys.exit(2)
+          else:
+              print(f'✅ modinfo.json: {total} mods validated successfully')
+          " 2>&1
+          CATALOG_EXIT=$?
+          echo "catalog_exit=$CATALOG_EXIT" >> "$GITHUB_OUTPUT"
+          set -e
 
       - name: Post PR comment with results
         if: github.event_name == 'pull_request' && steps.find-mods.outputs.mod_count != '0'
@@ -81,7 +156,7 @@ jobs:
             try {
               output = execSync(`python /tmp/validate_modinfo.py "${modPath}" 2>&1`, {
                 encoding: 'utf-8',
-                timeout: 60000
+                timeout: 120000
               });
             } catch (e) {
               output = e.stdout || e.message;
@@ -92,7 +167,6 @@ jobs:
 
             const body = `## ${status}\n\n\`\`\`\n${output}\n\`\`\`\n\n---\n*Validated by [Icarus Mod Validator](https://github.com/AgentKush/icarus-modinfo-validator)*`;
 
-            // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

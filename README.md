@@ -1,52 +1,38 @@
+<div align="center">
+
 # Icarus Mod Validator
 
-Automated validation for Icarus EXMOD/EXMODZ mod files. Catches errors before they reach players.
+[![License](https://img.shields.io/github/license/AgentKush/icarus-modinfo-validator?style=flat-square&color=E87B35)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)]()
+[![No Dependencies](https://img.shields.io/badge/Dependencies-None-success?style=flat-square)]()
 
-Built for [JimK72's Mod Manager](https://github.com/JimK72/Icarus-Mod-Manager) format.
+Automated validation for Icarus **EXMOD/EXMODZ** mod files. Catches errors before they reach players.
+
+Built for [JimK72's Mod Manager](https://github.com/Jimk72/Icarus_Software) format.
+
+</div>
+
+---
 
 ## What It Checks
 
-**Schema & Required Fields**
-- All required fields present: `name`, `author`, `version`, `description`, `fileName`
-- Correct data types for each field
-- Valid JSON syntax and UTF-8 encoding
+**Schema & Fields** — All required fields present (`name`, `author`, `version`, `description`, `fileName`) with correct types. Valid JSON syntax and UTF-8 encoding (BOM stripped automatically).
 
-**Version Format**
-- Semver (`1.0`, `1.0.0`, `v1.2.3`)
-- Week-based (`w132`, `W125`)
-- Semver with metadata (`1.0.0-beta`)
+**Version Format** — Supports semver (`1.0`, `1.0.0`, `v1.2.3`), week-based (`w132`, `W125`), and metadata variants (`1.0.0-beta`).
 
-**Data Table Structure**
-- `CurrentFile` follows `Category-D_TableName.json` naming
-- Every `File_Items` entry has a `Name` identifier
-- `NSLOCTEXT()` strings are properly formatted
-- Icon paths start with `/Game/Assets/`
-- Workshop item costs have valid `Amount` values
-- Talent grid entries have `Position` and `Size`
-- Duplicate table references flagged
+**Data Table Structure** — `CurrentFile` naming follows `Category-D_TableName.json` convention. Every `File_Items` entry has a `Name` identifier. `NSLOCTEXT()` strings validated. Icon paths verified (`/Game/Assets/`). Workshop costs checked for valid `Amount` values. Talent grid entries checked for `Position` and `Size`. Duplicate table references flagged.
 
-**File References & Packaging**
-- EXMODZ zip structure: EXMOD must be in `Extracted Mods/` folder
-- Detects EXMOD files in wrong locations
+**Packaging** — EXMODZ zip structure validated: EXMOD must be inside `Extracted Mods/` folder (Mod Manager requirement).
 
-**README & Mod Quality**
-- README.md presence and minimum content
-- Installation instructions mentioned
-- Compatibility/week version noted
-- Changelog section present
-- Placeholder detection (author, description)
+**Documentation** — README.md presence and content quality. Checks for installation instructions, compatibility notes, and changelog sections. Placeholder detection for author and description fields.
 
-## Setup: GitHub Actions (Recommended)
+**Catalog (modinfo.json)** — Validates the master mod catalog: required fields per mod, duplicate detection, download URL format, and cross-referencing against actual mod folders.
 
-Add the workflow to your mod repo. It runs automatically on push/PR when mod files change.
+---
 
-### Option 1: Copy the workflow file
+## Quick Start: GitHub Actions
 
-1. Create `.github/workflows/` in your mod repo
-2. Copy `validate-mod.yml` into it
-3. Commit and push
-
-### Option 2: One-liner setup
+Add automated validation to your Icarus mod repo in one command:
 
 ```bash
 mkdir -p .github/workflows && \
@@ -56,15 +42,17 @@ git add .github/workflows/validate-mod.yml && \
 git commit -m "Add Icarus mod validation workflow"
 ```
 
-### What happens
+Or manually copy `.github/workflows/validate-mod.yml` into your repo.
 
-- **On push**: Validates any changed `.EXMOD`, `.EXMODZ`, or `modinfo.json` files
-- **On PR**: Validates and posts a comment with results (pass/fail + details)
-- **Manual**: Run from Actions tab, optionally specify a subdirectory
+### What Happens
+
+- **On push** — Validates any changed `.EXMOD`, `.EXMODZ`, or `modinfo.json` files
+- **On PR** — Validates and posts a comment with pass/fail results
+- **Manual** — Run from the Actions tab with an optional subdirectory path
 
 ### PR Comment Example
 
-> ## ✅ Mod Validation Passed
+> ## Mod Validation Passed
 > ```
 > ══════════════════════════════════════════════════════════════
 >   Validating: MyMod.EXMOD
@@ -74,37 +62,35 @@ git commit -m "Add Icarus mod validation workflow"
 >   ✅ PASSED — 0 error(s), 0 warning(s)
 > ```
 
+---
+
 ## Local Usage
 
-You can also run the validator locally:
+Run the validator directly from the command line:
 
 ```bash
 # Validate a single EXMOD file
-python validate_modinfo.py path/to/MyMod.EXMOD
+python validate_modinfo.py MyMod/MyMod.EXMOD
 
-# Validate an EXMODZ package
-python validate_modinfo.py path/to/MyMod.EXMODZ
+# Validate an EXMODZ package (checks zip structure too)
+python validate_modinfo.py MyMod/MyMod.EXMODZ
 
-# Scan a directory for all mod files
-python validate_modinfo.py path/to/mods/
+# Scan an entire directory for all mod files
+python validate_modinfo.py ./mods/
 
 # GitHub Actions annotation mode (auto-detected in CI)
-python validate_modinfo.py --github path/to/MyMod.EXMOD
+python validate_modinfo.py --github MyMod/MyMod.EXMOD
 ```
 
 ### Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| 0 | All checks passed |
-| 1 | Errors found (mod will likely fail to load) |
-| 2 | Warnings only (mod may work but has issues) |
+| `0` | All checks passed |
+| `1` | Errors found — mod will likely fail to load |
+| `2` | Warnings only — mod may work but has issues |
 
-## Requirements
-
-- Python 3.8+ (no external dependencies)
-
-## Example Output
+### Example Output
 
 ```
 ══════════════════════════════════════════════════════════════
@@ -119,13 +105,54 @@ python validate_modinfo.py --github path/to/MyMod.EXMOD
   ❌ FAILED — 2 error(s), 3 warning(s)
 ```
 
+---
+
+## Validation Rules Reference
+
+### Required EXMOD Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Display name of the mod |
+| `author` | string | Mod author (not a placeholder) |
+| `version` | string | Version in supported format |
+| `description` | string | What the mod does (min 10 chars) |
+| `fileName` | string | Base filename without extension |
+
+### Supported Data Tables
+
+The validator recognizes 20+ table categories and 24+ table names from Icarus, including `D_ItemTemplate`, `D_ItemsStatic`, `D_WorkshopItems`, `D_Talents`, `D_TalentTrees`, `D_TalentArchetypes`, `D_ProcessorRecipes`, `D_Consumable`, `D_Equippable`, and more.
+
+### EXMODZ Structure
+
+```
+ModName.EXMODZ (zip)
+├── Extracted Mods/
+│   └── ModName.EXMOD          ← Required location
+└── ModName/
+    ├── Readme (ModName_P.pak).txt
+    ├── README.md
+    └── Banner.png
+```
+
+---
+
+## Requirements
+
+Python 3.8+ with no external dependencies. Uses only standard library modules: `json`, `os`, `re`, `sys`, `zipfile`, `pathlib`.
+
 ## Contributing
 
-PRs welcome! Especially:
-- New validation rules for edge cases you've hit
-- Additional data table names as Icarus updates
-- Improved error messages
+PRs welcome, especially for new validation rules, additional data table names as Icarus updates, and improved error messages.
 
 ## License
 
-MIT — use it however you want.
+[MIT](LICENSE) — use it however you want.
+
+---
+
+<div align="center">
+
+**Part of [AgentKush's Icarus Mods](https://github.com/AgentKush/Icarus-mods)** — 38 mods, 37,500+ data entries, 18,800+ recipes
+
+</div>
