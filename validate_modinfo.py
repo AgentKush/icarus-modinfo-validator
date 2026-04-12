@@ -12,6 +12,8 @@ Checks:
   - README presence and content quality
   - Mod naming conventions
   - EXMODZ packaging structure
+  - Blueprint (BP) asset validation (uasset/uexp pairs)
+  - PAK file validation (naming convention, location, packaging)
 
 Usage:
   python validate_modinfo.py path/to/ModName.EXMOD
@@ -55,15 +57,39 @@ VALID_TABLE_CATEGORIES = {
     "Missions", "Weather", "Tech", "Buildable", "Fish",
     "Creature", "Harvestable", "Deployable", "DLC", "Meta",
     "Equipment", "Consumables", "Resources", "Workshop",
+    "AI", "Armour", "Building", "Character", "Deployables",
+    "Experience", "Farming", "Horde", "Inventory", "Prospects",
+    "Scaling", "UI", "World",
 }
 
 VALID_TABLE_NAMES = {
+    # Core item/equipment tables
     "D_ItemTemplate", "D_Itemable", "D_Equippable", "D_ItemsStatic",
-    "D_WorkshopItems", "D_Talents", "D_TalentArchetypes", "D_TalentTrees",
-    "D_ProcessorRecipes", "D_Processable", "D_Decayable", "D_Consumable",
-    "D_ModifierStates", "D_MetaCurrency", "D_Interactable",
-    "D_RecipeSets", "D_Processing", "D_Durable", "D_Buildable",
-    "D_Harvestable", "D_Deployable", "D_Creature", "D_FishSpawn",
+    "D_Inventory", "D_InventoryInfo", "D_Durable", "D_Meshable",
+    # Workshop and crafting
+    "D_WorkshopItems", "D_ProcessorRecipes", "D_Processing",
+    "D_RecipeSets", "D_Consumable", "D_Decayable", "D_Combustible",
+    # Talents and meta
+    "D_Talents", "D_TalentArchetypes", "D_TalentTrees",
+    "D_ModifierStates", "D_MetaCurrency",
+    # Building and deployables
+    "D_Buildable", "D_BuildingPieces", "D_BuildingSkins",
+    "D_Deployable", "D_DeployableSetup", "D_VoxelSetupData",
+    # Creatures and AI
+    "D_AICreatureType", "D_AIGrowth", "D_AISpawnZones",
+    "D_AutonomousSpawns", "D_EpicCreatures", "D_Turret",
+    # Farming, fish, world
+    "D_Farmable", "D_FarmingGrowthStates", "D_FishSpawnZones",
+    "D_Harvestable", "D_OreDeposit", "D_Biomes", "D_MapIcons",
+    # Stats, scaling, weather
+    "D_StatAfflictions", "D_AfflictionChance", "D_ScalingRules",
+    "D_CharacterCreationData", "D_CharacterStartingStats",
+    "D_WeatherEvents", "D_WeatherActions", "D_WeatherPools",
+    # Experience, rewards, prospects
+    "D_ExperienceEvents", "D_ItemRewards",
+    "D_ProspectList", "D_ProspectStats", "D_HordeWave",
+    # Armour
+    "D_ArmourSetBonus", "D_ArmourSets",
 }
 
 VERSION_PATTERNS = [
@@ -498,6 +524,94 @@ def validate_exmodz_structure(exmodz_path, result):
             return None
         elif len(exmod_files) > 1:
             result.warning(f"Multiple EXMOD files found: {exmod_files}. Expected one.")
+
+        # Derive mod name from EXMOD filename
+        exmod_name = exmod_files[0].replace("Extracted Mods/", "").replace(".EXMOD", "")
+
+        # ── Blueprint (BP) validation ──────────────────────────────────
+        bp_files = [n for n in names if "/BP/" in n and not n.endswith("/")]
+        if bp_files:
+            uasset_files = [n for n in bp_files if n.endswith(".uasset")]
+            uexp_files = [n for n in bp_files if n.endswith(".uexp")]
+
+            result.info(f"BP folder found: {len(uasset_files)} .uasset, {len(uexp_files)} .uexp files")
+
+            # Every .uasset should have a matching .uexp (and vice versa)
+            uasset_stems = {n.rsplit(".", 1)[0] for n in uasset_files}
+            uexp_stems = {n.rsplit(".", 1)[0] for n in uexp_files
+                          if not n.endswith(".vanilla.bak")}
+
+            orphan_uassets = uasset_stems - uexp_stems
+            orphan_uexps = uexp_stems - uasset_stems
+
+            for stem in orphan_uassets:
+                basename = stem.rsplit("/", 1)[-1]
+                result.error(
+                    f'BP asset "{basename}.uasset" has no matching .uexp file. '
+                    "Both files are required for Unreal Engine to load the blueprint."
+                )
+            for stem in orphan_uexps:
+                basename = stem.rsplit("/", 1)[-1]
+                result.error(
+                    f'BP asset "{basename}.uexp" has no matching .uasset file. '
+                    "Both files are required for Unreal Engine to load the blueprint."
+                )
+
+            # BP files must be inside the ModName/ folder, not Extracted Mods/
+            wrong_location_bp = [n for n in bp_files if n.startswith("Extracted Mods/")]
+            if wrong_location_bp:
+                result.error(
+                    "BP files found inside Extracted Mods/ — they must be in "
+                    f'"{exmod_name}/BP/" folder instead.'
+                )
+
+        # ── PAK file validation ────────────────────────────────────────
+        pak_files = [n for n in names if n.lower().endswith(".pak")]
+        if pak_files:
+            result.info(f"PAK file(s) found: {', '.join(pak_files)}")
+
+            for pak in pak_files:
+                # PAK files should be in ModName/ folder, not Extracted Mods/
+                if pak.startswith("Extracted Mods/"):
+                    result.error(
+                        f'PAK file "{pak}" is inside Extracted Mods/ — '
+                        f'move it to "{exmod_name}/" folder.'
+                    )
+
+                # PAK naming convention: should end with _P.pak
+                pak_basename = pak.rsplit("/", 1)[-1]
+                if not pak_basename.endswith("_P.pak"):
+                    result.warning(
+                        f'PAK file "{pak_basename}" does not follow the _P.pak naming '
+                        "convention (e.g. ModName_P.pak). Icarus may not load it."
+                    )
+
+                # Warn that PAK mods require server-side install
+                result.info(
+                    f'PAK mod detected ({pak_basename}). Remember: all players and '
+                    "the server must install .pak files to Icarus/Content/Paks/mods/"
+                )
+
+        # ── Check for BP on disk but missing from EXMODZ ──────────────
+        # (only when we can check the mod directory on disk)
+        mod_dir = os.path.dirname(exmodz_path)
+        disk_bp_dir = os.path.join(mod_dir, "BP")
+        if os.path.isdir(disk_bp_dir) and not bp_files:
+            result.error(
+                'BP/ folder exists on disk but is NOT included in the EXMODZ package. '
+                "Blueprint assets must be packaged inside the EXMODZ for the mod to work."
+            )
+
+        # Check for .pak on disk but missing from EXMODZ
+        if mod_dir:
+            disk_paks = [f for f in os.listdir(mod_dir) if f.lower().endswith(".pak")]
+            packaged_pak_names = {p.rsplit("/", 1)[-1] for p in pak_files}
+            for dp in disk_paks:
+                if dp not in packaged_pak_names:
+                    result.warning(
+                        f'PAK file "{dp}" exists on disk but is NOT in the EXMODZ package. '
+                        "If this PAK is required, it should be included."
+                    )
 
         # Read and return the EXMOD content
         exmod_path = exmod_files[0]
