@@ -381,6 +381,10 @@ def validate_rows(data, result):
             result.error('"CurrentFile" must be a string', loc)
             continue
 
+        # Skip EndOfMod sentinel rows (valid Mod Manager terminator)
+        if current_file == "EndOfMod":
+            continue
+
         # Validate table file naming: Category-D_TableName.json
         # Also handles multi-segment categories like Items-Types-D_BuildingTypes.json
         table_match = re.match(r"^(.+)-(D_\w+)\.json$", current_file)
