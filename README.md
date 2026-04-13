@@ -198,7 +198,7 @@ ModName.EXMODZ (zip)
 
 ## Requirements
 
-Python 3.8+ with no external dependencies. Uses only standard library modules: `json`, `os`, `re`, `sys`, `zipfile`, `pathlib`.
+Python 3.8+ with no external dependencies. Uses only standard library modules: `gzip`, `json`, `os`, `re`, `sys`, `zipfile`, `pathlib`.
 
 ## Contributing
 
