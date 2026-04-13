@@ -44,6 +44,8 @@ jobs:
         run: |
           curl -sL https://raw.githubusercontent.com/AgentKush/icarus-modinfo-validator/main/validate_modinfo.py \
             -o /tmp/validate_modinfo.py
+          curl -sL https://raw.githubusercontent.com/AgentKush/icarus-modinfo-validator/main/game_assets.json.gz \
+            -o /tmp/game_assets.json.gz
           chmod +x /tmp/validate_modinfo.py
 
       - name: Find mod files
