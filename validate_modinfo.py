@@ -731,9 +731,11 @@ def validate_exmodz_structure(exmodz_path, result):
                 )
 
         # ── Check for BP on disk but missing from EXMODZ ──────────────
-        # (only when we can check the mod directory on disk)
+        # Scope to the mod's OWN folder (ModName/) not the parent directory
+        # This avoids false positives when multiple mods share a parent folder
         mod_dir = os.path.dirname(exmodz_path)
-        disk_bp_dir = os.path.join(mod_dir, "BP")
+        mod_own_dir = os.path.join(mod_dir, exmod_name)
+        disk_bp_dir = os.path.join(mod_own_dir, "BP") if os.path.isdir(os.path.join(mod_own_dir, "BP")) else os.path.join(mod_dir, "BP")
         if os.path.isdir(disk_bp_dir):
             if not bp_files:
                 result.error(
@@ -754,8 +756,11 @@ def validate_exmodz_structure(exmodz_path, result):
                             )
 
         # Check for .pak on disk but missing from EXMODZ
-        if mod_dir:
-            disk_paks = [f for f in os.listdir(mod_dir) if f.lower().endswith(".pak")]
+        # Only check the mod's own folder (ModName/) to avoid false positives
+        # when multiple mods share a parent directory
+        pak_check_dir = mod_own_dir if os.path.isdir(mod_own_dir) else None
+        if pak_check_dir:
+            disk_paks = [f for f in os.listdir(pak_check_dir) if f.lower().endswith(".pak")]
             packaged_pak_names = {p.rsplit("/", 1)[-1] for p in pak_files}
             for dp in disk_paks:
                 if dp not in packaged_pak_names:
@@ -800,9 +805,11 @@ def validate_exmodz_structure(exmodz_path, result):
             )
 
         # Disk cross-check: doc files on disk but missing from EXMODZ
-        if mod_dir:
+        # Check the mod's own folder first, fall back to parent dir
+        doc_check_dir = mod_own_dir if os.path.isdir(mod_own_dir) else mod_dir
+        if doc_check_dir:
             for doc_file in ["README.md", "Banner.png"]:
-                disk_doc = os.path.join(mod_dir, doc_file)
+                disk_doc = os.path.join(doc_check_dir, doc_file)
                 if os.path.isfile(disk_doc):
                     packaged_names_lower = {n.lower() for n in names}
                     expected = f"{exmod_name}/{doc_file}".lower()
@@ -811,7 +818,7 @@ def validate_exmodz_structure(exmodz_path, result):
                             f'"{doc_file}" exists on disk but is NOT in the EXMODZ package.'
                         )
             # Check for Readme .txt files on disk
-            for f in os.listdir(mod_dir):
+            for f in os.listdir(doc_check_dir):
                 if f.lower().endswith(".txt") and "readme" in f.lower():
                     packaged_txt_lower = {n.rsplit("/", 1)[-1].lower() for n in names}
                     if f.lower() not in packaged_txt_lower:
